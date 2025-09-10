@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ai-services-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  rules:
+  - host: ai-services.local  # Change this to your domain
+    http:
+      paths:
+      - path: /instructor
+        pathType: Prefix
+        backend:
+          service:
+            name: instructor-service
+            port:
+              number: 8000
+      - path: /reranker
+        pathType: Prefix
+        backend:
+          service:
+            name: reranker-service
+            port:
+              number: 8000

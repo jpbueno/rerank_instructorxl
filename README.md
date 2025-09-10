@@ -131,6 +131,88 @@ docker run -d --gpus all -p 8001:8000 --name instructor-service instructor-servi
 docker run -d --gpus all -p 8002:8000 --name reranker-service reranker-service
 ```
 
+### 4. Run on Kubernetes
+
+#### Prerequisites for Kubernetes
+- Kubernetes cluster with GPU support (NVIDIA GPU Operator recommended)
+- kubectl configured to access your cluster
+- Container registry access (Docker Hub, ECR, GCR, etc.)
+
+#### Build and Push Images
+First, build and push your images to a container registry:
+
+```bash
+# Build images
+docker build -f instructor/Dockerfile.instructor -t your-registry/instructor-service:latest instructor/
+docker build -f reranker/Dockerfile.reranker -t your-registry/reranker-service:latest reranker/
+
+# Push to registry (replace with your registry)
+docker push your-registry/instructor-service:latest
+docker push your-registry/reranker-service:latest
+```
+
+#### Deploy to Kubernetes
+```bash
+# Create namespace
+kubectl apply -f k8s/namespace.yaml
+
+# Deploy services
+kubectl apply -f k8s/instructor-deployment.yaml
+kubectl apply -f k8s/reranker-deployment.yaml
+
+# Optional: Deploy ingress for external access
+kubectl apply -f k8s/ingress.yaml
+```
+
+#### Verify Deployment
+```bash
+# Check pod status
+kubectl get pods -n ai-services
+
+# Check services
+kubectl get services -n ai-services
+
+# Check logs
+kubectl logs -f deployment/instructor-service -n ai-services
+kubectl logs -f deployment/reranker-service -n ai-services
+```
+
+#### Access Services
+```bash
+# Port forward for local testing
+kubectl port-forward service/instructor-service 8001:8000 -n ai-services
+kubectl port-forward service/reranker-service 8002:8000 -n ai-services
+
+# Or use ingress (if configured)
+curl http://ai-services.local/instructor/healthz
+curl http://ai-services.local/reranker/healthz
+```
+
+#### Scaling Services
+```bash
+# Scale instructor service
+kubectl scale deployment instructor-service --replicas=3 -n ai-services
+
+# Scale reranker service
+kubectl scale deployment reranker-service --replicas=2 -n ai-services
+```
+
+## 📁 Kubernetes Manifest Files
+
+The `k8s/` directory contains all necessary Kubernetes manifests:
+
+- **`namespace.yaml`**: Creates the `ai-services` namespace
+- **`instructor-deployment.yaml`**: Deployment and service for the instructor service
+- **`reranker-deployment.yaml`**: Deployment and service for the reranker service  
+- **`ingress.yaml`**: Optional ingress configuration for external access
+
+### Key Features of the Kubernetes Setup:
+- **GPU Support**: Configured for NVIDIA GPU resources
+- **Health Checks**: Liveness and readiness probes
+- **Resource Limits**: Memory and CPU constraints
+- **Scaling Ready**: Easy horizontal scaling with kubectl
+- **Namespace Isolation**: Services run in dedicated namespace
+
 ## 🔧 API Usage
 
 ### Instructor Service (Port 8001)
