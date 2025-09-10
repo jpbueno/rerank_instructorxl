@@ -72,7 +72,7 @@ docker build -f Dockerfile.reranker -t reranker-service .
 
 ### 3. Run the Services
 
-#### Using Docker Compose (Recommended)
+#### Using Docker Compose
 Create a `docker-compose.yml` file in the project root:
 
 ```yaml
